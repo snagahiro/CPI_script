@@ -1,6 +1,5 @@
 
 #include <pjsr/Sizer.jsh>
-
 #include <pjsr/NumericControl.jsh>
 #include <pjsr/ImageOp.jsh>
 
@@ -16,16 +15,12 @@ var cpiParameters = {
 function ColdPixelInterpolationEngine() {
    /*maybe including parameters which is NOT necessary... */
    this.inputFiles = new Array;
-   this.referencesImage = "";
-   this.refereceImageWindow = null;
-   this.referenceView = null;
    this.outputDirectory = "";
    this.outputPrefix = "";
-   this.outputPostfix = "_f";
+   this.outputPostfix = "";
    this.outputExtension = DEFAULT_OUTPUT_EXTENSION;
-   this.overwriteExisting = false;
+   this.overwriteExisting = true;
    this.outputFormat = null;
-   this.showImages = false;
 
    this.readImage = function (filePath) {
       var inputImageWindow = ImageWindow.open(filePath);
@@ -33,11 +28,62 @@ function ColdPixelInterpolationEngine() {
       return inputImageWindow[0];
    };
 
+   this.writeImage = function (imageWindow, filePath) {
+      var fileDir = (this.outputDirectory.length > 0) ? this.outputDirectory :
+         File.extractDrive(filePath) + File.extractDirectory(filePath);
+      if (!fileDir.endsWith('/'))
+         fileDir += '/';
+      var fileName = File.extractName(filePath);
+
+      var outputFilePath = fileDir + this.outputPrefix + fileName + this.outputPostfix + this.outputExtension;
+      console.writeln("<end><cbr><br>Output file:");
+
+      if (File.exists(outputFilePath)) {
+         if (this.overwriteExisting) {
+            console.writeln("<end><cbr>** Overwriting existing file: " + outputFilePath);
+         }
+         else {
+            console.writeln("<end><cbr>* File already exists: " + outputFilePath);
+            for (var u = 1; ; ++u) {
+               var tryFilePath = File.appendToName(outputFilePath, '_' + u.toString());
+               if (!File.exists(tryFilePath)) {
+                  outputFilePath = tryFilePath;
+                  break;
+               }
+            }
+            console.writeln("<end><cbr>* Writing to: <raw>" + outputFilePath + "</raw>");
+         }
+      }
+      else {
+         console.writeln("<raw>" + outputFilePath + "</raw>");
+      }
+
+      // write the output image to disk using
+      // Boolean ImageWindow.saveAs(
+      //    String filePath[,
+      //    Boolean queryOptions[,
+      //    Boolean allowMessages[,
+      //    Boolean strict[,
+      //    Boolean verifyOverwrite]]]] )
+      imageWindow.saveAs(outputFilePath, false, false, false, false);
+      // this statement will force ImageWindow to disable all format and security features, as follows
+      //    disable query format-specific options
+      //    disable warning messages on missing format features (icc profiles, etc)
+      //    disable strict image writing mode (ignore lossy image generation)
+      //    disable overwrite verification/protection
+
+   };
+
    this.coldPixelInterpolationFiles = function () {
       var currentImage = null;
       var stackedImage = null;
+      var directory = null;
       for (var i = 0; i < this.inputFiles.length; ++i) {
          currentImage = this.readImage(this.inputFiles[i]);
+         if (i == 0) {
+            directory = (this.outputDirectory.length > 0) ? this.outputDirectory :
+               File.extractDrive(this.inputFiles[i]) + File.extractDirectory(this.inputFiles[i]);
+         }
          if (stackedImage == null) {
             stackedImage = new Image(currentImage.mainView.image.width, currentImage.mainView.image.height);
          }
@@ -48,12 +94,78 @@ function ColdPixelInterpolationEngine() {
          stackedImage.apply(image, ImageOp_Add);           //and add!
          currentImage.mainView.endProcess();
       }
-      //show stacked image
-      var outImage = new ImageWindow(stackedImage.width, stackedImage.height);
-      outImage.mainView.beginProcess();
-      outImage.mainView.image.assign(stackedImage);
-      outImage.mainView.endProcess();
-      outImage.show();
+
+      //Convert to ImageWindow Object
+      var stackedImageWin = new ImageWindow(stackedImage.width, stackedImage.height);
+      stackedImageWin.mainView.beginProcess();
+      stackedImageWin.mainView.image.assign(stackedImage);
+      stackedImageWin.mainView.endProcess();
+
+      stackedImagePath = directory + "/stacked.xisf";
+      Console.writeln(stackedImagePath);
+
+      //Output stacked imaged to input for CosmeticCorrection
+      this.writeImage(stackedImageWin, stackedImagePath);
+
+      //CC Process
+      var cc_process = new CosmeticCorrection;
+      with (cc_process) {
+         targetFrames = [[true, stackedImagePath]];
+         masterDarkPath = "";
+         outputDir = "";
+         outputExtension = ".xisf";
+         prefix = "";
+         postfix = "_cc";
+         overwrite = false;
+         cfa = true;
+         useMasterDark = false;
+         hotDarkCheck = false;
+         hotDarkLevel = 1.0000000;
+         coldDarkCheck = false;
+         coldDarkLevel = 0.0000000;
+         useAutoDetect = true;
+         hotAutoCheck = false;
+         hotAutoValue = 3.0;
+         coldAutoCheck = true;
+         coldAutoValue = cpiParameters.coldSigma;
+         amount = 1.00;
+         useDefectList = false;
+         defects = [];
+         executeGlobal();
+      }
+
+      //Read CC-ed image
+      stackedImageCCPath = directory + "/stacked_cc.xisf";
+      var stackedCCImageWin = this.readImage(stackedImageCCPath);
+
+      //Create Cool File
+      var coolImage = new ImageWindow(stackedCCImageWin);
+      coolImage.mainView.beginProcess();
+      coolImage.mainView.image.apply(stackedImageWin.mainView.image, ImageOp_Sub);
+      coolImage.mainView.endProcess();
+
+      //Apply Cool File to original light frames
+      var directory = null;
+      for (var i = 0; i < this.inputFiles.length; ++i) {
+         currentImage = this.readImage(this.inputFiles[i]);
+         if (i == 0) {
+            directory = (this.outputDirectory.length > 0) ? this.outputDirectory :
+               File.extractDrive(this.inputFiles[i]) + File.extractDirectory(this.inputFiles[i]);
+            directory += "/corrected";
+            if (!File.directoryExists(directory)) {
+               File.createDirectory(directory);
+            }
+         }
+         currentImage.mainView.beginProcess();
+         var image = currentImage.mainView.image;
+         image.apply(coolImage.mainView.image, ImageOp_Add);
+         currentImage.mainView.endProcess();
+         var fileName = File.extractName(this.inputFiles[i]);
+         var outPath = directory + "/" + fileName;
+         this.outputPostfix = "_cf";
+         this.writeImage(currentImage, outPath);
+      }
+
    }
 }
 
