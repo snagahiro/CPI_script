@@ -182,7 +182,9 @@ function CPI_dialog() {
    //title show
    this.title = new TextBox(this);
    this.title.text = "<b> Cold Pixel Interpolation v0.1</b><br><br>" +
-      "&nbsp;a script removes cold pixels by apranat<br>" +
+      "&nbsp;a script removes cold pixels<br>" +
+      "&nbsp;&nbsp;invented by apranat (Twitter: @PG1wvzio4yvwFXW)<br>" +
+      "&nbsp;&nbsp;implemented by nagahiro (Twitter: @pochomskii) and astrodabo (Twitter: @astrodabo)<br>" +
       "now under construction!";
    this.title.readOnly = true;
    this.title.backgoundColor = 0x333333ff;
