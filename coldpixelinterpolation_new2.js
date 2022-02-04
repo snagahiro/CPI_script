@@ -2,6 +2,9 @@
 #include <pjsr/Sizer.jsh>
 
 #include <pjsr/NumericControl.jsh>
+#include <pjsr/ImageOp.jsh>
+
+#define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
 //1:29:25
 
@@ -9,6 +12,52 @@ var cpiParameters = {
    coldSigma : 0,
    targetView: undefined
 };
+
+function ColdPixelInterpolationEngine() {
+   /*maybe including parameters which is NOT necessary... */
+   this.inputFiles = new Array;
+   this.referencesImage = "";
+   this.refereceImageWindow = null;
+   this.referenceView = null;
+   this.outputDirectory = "";
+   this.outputPrefix = "";
+   this.outputPostfix = "_f";
+   this.outputExtension = DEFAULT_OUTPUT_EXTENSION;
+   this.overwriteExisting = false;
+   this.outputFormat = null;
+   this.showImages = false;
+
+   this.readImage = function (filePath) {
+      var inputImageWindow = ImageWindow.open(filePath);
+
+      return inputImageWindow[0];
+   };
+
+   this.coldPixelInterpolationFiles = function () {
+      var currentImage = null;
+      var stackedImage = null;
+      for (var i = 0; i < this.inputFiles.length; ++i) {
+         currentImage = this.readImage(this.inputFiles[i]);
+         if (stackedImage == null) {
+            stackedImage = new Image(currentImage.mainView.image.width, currentImage.mainView.image.height);
+         }
+         currentImage.mainView.beginProcess();
+         var image = currentImage.mainView.image;
+         //stacking
+         image.apply(this.inputFiles.length, ImageOp_Div); //divide current image
+         stackedImage.apply(image, ImageOp_Add);           //and add!
+         currentImage.mainView.endProcess();
+      }
+      //show stacked image
+      var outImage = new ImageWindow(stackedImage.width, stackedImage.height);
+      outImage.mainView.beginProcess();
+      outImage.mainView.image.assign(stackedImage);
+      outImage.mainView.endProcess();
+      outImage.show();
+   }
+}
+
+var engine = new ColdPixelInterpolationEngine;
 
 
 function CPI_dialog() {
