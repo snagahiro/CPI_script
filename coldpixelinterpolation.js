@@ -8,7 +8,8 @@
 
 #define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
-//1:29:25
+#define VERSION "0.1.0"
+#define TITLE   "Cold Pixel Interpolation"
 
 var cpiParameters = {
    coldSigma: 0,
@@ -217,7 +218,7 @@ function CPI_dialog() {
 
    //title show
    this.title = new TextBox(this);
-   this.title.text = "<b> Cold Pixel Interpolation v0.1</b><br><br>" +
+   this.title.text = "<b>" + TITLE + " v" + VERSION + "</b><br><br>" +
       "&nbsp;a script removes cold pixels<br>" +
       "&nbsp;&nbsp;invented by apranat (Twitter: @PG1wvzio4yvwFXW)<br>" +
       "&nbsp;&nbsp;implemented by astrodabo (Twitter: @astrodabo) and nagahiro (Twitter: @pochomskii) <br>" +
