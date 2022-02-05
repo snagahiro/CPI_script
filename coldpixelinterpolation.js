@@ -311,6 +311,13 @@ function CPI_dialog() {
       cpiParameters.coldSigma = value;
    }
 
+   this.params_GroupBox = new GroupBox( this );
+   this.params_GroupBox.title = "CPI Parameters";
+   this.params_GroupBox.sizer = new VerticalSizer;
+   this.params_GroupBox.sizer.margin = 6;
+   this.params_GroupBox.sizer.spacing = 4;
+   this.params_GroupBox.sizer.add( this.setAmount );
+
    //execute button
    this.execButton = new PushButton(this);
    this.execButton.text = "EXECUTE";
@@ -455,10 +462,9 @@ function CPI_dialog() {
    this.sizer.addSpacing(8);
    this.sizer.add(this.files_GroupBox);
    this.sizer.addSpacing(8);
-   this.sizer.add(this.setAmount);
+   this.sizer.add(this.params_GroupBox);
    this.sizer.addSpacing(8);
    this.sizer.add(this.output_GroupBox);
-   this.sizer.add(this.prefixSizer);
    this.sizer.add(this.bottomSizer);
    this.sizer.addStretch();
 
