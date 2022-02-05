@@ -172,6 +172,7 @@ function ColdPixelInterpolationEngine() {
       coolImage.mainView.beginProcess();
       coolImage.mainView.image.apply(stackedImageWin.mainView.image, ImageOp_Sub);
       coolImage.mainView.endProcess();
+      coolImage.show();
 
       //Apply Cool File to original light frames
       var directory = null;
