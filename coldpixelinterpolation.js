@@ -1,3 +1,70 @@
+// ****************************************************************************
+// coldpixelinterpolation.js - Released 02/05/2022
+// Version: 0.1.0
+// ****************************************************************************
+// Copyright (c) 2022, Nagahiro and Astrodabo. All Rights Reserved.
+// Website (nagahiro): https://snct-astro.hatenadiary.jp/archive
+// Twitter (nagahiro): https://twitter.com/pochomskii
+// Website (astrodabo): https://dabokun.github.io/
+// Twitter (astrodabo): https://twitter.com/astrodabo
+//
+// Redistribution and use in both source and binary forms, with or without
+// modification, is permitted provided that the following conditions are met:
+//
+// 1. All redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//
+// 2. All redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// 3. All products derived from this software, in any form whatsoever, must
+//    reproduce the following acknowledgment in the end-user documentation
+//    and/or other materials provided with the product.
+//
+// 4. This product is based on software from the PixInsight project, developed
+//    by Pleiades Astrophoto and its contributors (http://pixinsight.com/).
+//
+// 	  This file executes within the PixInsight JavaScript Runtime (PJSR).
+// 	  PJSR is an ECMA-262 compliant framework for development of scripts on the
+//    PixInsight platform.
+//    Copyright (c) 2003-2020, Pleiades Astrophoto S.L. All Rights Reserved.
+//
+// THIS SOFTWARE IS PROVIDED BY NAGAHIRO AND ASTRODABO "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL NAGAHIRO AND ASTRODABO BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// BUSINESS INTERRUPTION; PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; AND LOSS
+// OF USE, DATA OR PROFITS) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// ****************************************************************************
+
+/*
+ * Cold Pixel Interpolation v0.1.0
+ *
+ * This script allows you to define a set of input calibrated light image files,
+ * cold sigma parameter, an optional output directory, and output file formats.
+ * The script then iterates reading each input file, stacks them. Then it replicates
+ * stacked data and applies CosmeticCorrection to one side.
+ * By taking the difference between these two images, a cool file is generated,
+ * and it will be output on PixInsight.
+ * Finally, the walking noise after stacking is greatly reduced by adding the
+ * cool file to all the original light frames.
+ * The stacked image, the image with CosmeticCorrection applied, and the cool file
+ * corrected data will be output to the specified directory or lower (or to
+ * the same directory as the first light frame if not specified), and the script
+ * will terminate.
+
+ *
+ * Copyright (C) 2022 Nagahiro and Astrodabo
+ *
+ * Part of this file is based on BatchLinearFit.js
+ * Copyright 2013 Pleiades Astrophoto S.L.
+ */
+
 
 #include <pjsr/Sizer.jsh>
 #include <pjsr/NumericControl.jsh>
