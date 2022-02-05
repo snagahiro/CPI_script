@@ -38,7 +38,7 @@ function ColdPixelInterpolationEngine() {
          fileDir += '/';
       var fileName = File.extractName(filePath);
 
-      var outputFilePath = fileDir + this.outputPrefix + fileName + this.outputPostfix + this.outputExtension;
+      var outputFilePath = fileDir + this.outputPrefix + fileName + this.usingPostfix + this.outputExtension;
       console.writeln("<end><cbr><br>Output file:");
 
       if (File.exists(outputFilePath)) {
@@ -104,22 +104,49 @@ function ColdPixelInterpolationEngine() {
       stackedImageWin.mainView.image.assign(stackedImage);
       stackedImageWin.mainView.endProcess();
 
-      stackedImagePath = directory + "/stacked.xisf";
-      Console.writeln(stackedImagePath);
+
+      stackedImagePath = directory + "/" + this.stackedName + ".xisf";
+      var stackedImagePath_actual = stackedImagePath;
+      if (!this.overwriteExisting) {
+         if (File.exists(stackedImagePath)) {
+            for (var u = 1; ; ++u) {
+               var tryFilePath = File.appendToName(stackedImagePath, '_' + u.toString());
+               if (!File.exists(tryFilePath)) {
+                  stackedImagePath_actual = tryFilePath;
+                  break;
+               }
+            }
+         }
+      }
+      this.usingPostfix = "";
 
       //Output stacked imaged to input for CosmeticCorrection
       this.writeImage(stackedImageWin, stackedImagePath);
 
       //CC Process
       var cc_process = new CosmeticCorrection;
+      this.usingPostfix = this.outputPostfixCC;
+      var stackedImageCCPath = File.appendToName(stackedImagePath_actual, this.usingPostfix);
+      var stackedImageCCPath_actual = stackedImageCCPath;
+      if (!this.overwriteExisting) {
+         if (File.exists(stackedImageCCPath)) {
+            for (var u = 1; ; ++u) {
+               var tryFilePath = File.appendToName(stackedImageCCPath, '_' + u.toString());
+               if (!File.exists(tryFilePath)) {
+                  stackedImageCCPath_actual = tryFilePath;
+                  break;
+               }
+            }
+         }
+      }
       with (cc_process) {
-         targetFrames = [[true, stackedImagePath]];
+         targetFrames = [[true, stackedImagePath_actual]];
          masterDarkPath = "";
          outputDir = "";
          outputExtension = ".xisf";
          prefix = "";
-         postfix = "_cc";
-         overwrite = false;
+         postfix = this.usingPostfix;
+         overwrite = this.overwriteExisting;
          cfa = true;
          useMasterDark = false;
          hotDarkCheck = false;
@@ -138,8 +165,7 @@ function ColdPixelInterpolationEngine() {
       }
 
       //Read CC-ed image
-      stackedImageCCPath = directory + "/stacked_cc.xisf";
-      var stackedCCImageWin = this.readImage(stackedImageCCPath);
+      var stackedCCImageWin = this.readImage(stackedImageCCPath_actual);
 
       //Create Cool File
       var coolImage = new ImageWindow(stackedCCImageWin);
@@ -149,6 +175,7 @@ function ColdPixelInterpolationEngine() {
 
       //Apply Cool File to original light frames
       var directory = null;
+      this.usingPostfix = this.outputPostfix;
       for (var i = 0; i < this.inputFiles.length; ++i) {
          currentImage = this.readImage(this.inputFiles[i]);
          if (i == 0) {
@@ -165,7 +192,6 @@ function ColdPixelInterpolationEngine() {
          currentImage.mainView.endProcess();
          var fileName = File.extractName(this.inputFiles[i]);
          var outPath = directory + "/" + fileName;
-         this.outputPostfix = this.outputPostfix;
          this.writeImage(currentImage, outPath);
       }
 
