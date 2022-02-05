@@ -1,3 +1,70 @@
+// ****************************************************************************
+// coldpixelinterpolation.js - Released 02/05/2022
+// Version: 0.1.0
+// ****************************************************************************
+// Copyright (c) 2022, Nagahiro and Astrodabo. All Rights Reserved.
+// Website (nagahiro): https://snct-astro.hatenadiary.jp/archive
+// Twitter (nagahiro): https://twitter.com/pochomskii
+// Website (astrodabo): https://dabokun.github.io/
+// Twitter (astrodabo): https://twitter.com/astrodabo
+//
+// Redistribution and use in both source and binary forms, with or without
+// modification, is permitted provided that the following conditions are met:
+//
+// 1. All redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//
+// 2. All redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// 3. All products derived from this software, in any form whatsoever, must
+//    reproduce the following acknowledgment in the end-user documentation
+//    and/or other materials provided with the product.
+//
+// 4. This product is based on software from the PixInsight project, developed
+//    by Pleiades Astrophoto and its contributors (http://pixinsight.com/).
+//
+// 	  This file executes within the PixInsight JavaScript Runtime (PJSR).
+// 	  PJSR is an ECMA-262 compliant framework for development of scripts on the
+//    PixInsight platform.
+//    Copyright (c) 2003-2020, Pleiades Astrophoto S.L. All Rights Reserved.
+//
+// THIS SOFTWARE IS PROVIDED BY NAGAHIRO AND ASTRODABO "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL NAGAHIRO AND ASTRODABO BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// BUSINESS INTERRUPTION; PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; AND LOSS
+// OF USE, DATA OR PROFITS) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+// IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// ****************************************************************************
+
+/*
+ * Cold Pixel Interpolation v0.1.0
+ *
+ * This script allows you to define a set of input calibrated light image files,
+ * cold sigma parameter, an optional output directory, and output file formats.
+ * The script then iterates reading each input file, stacks them. Then it replicates
+ * stacked data and applies CosmeticCorrection to one side.
+ * By taking the difference between these two images, a cool file is generated,
+ * and it will be output on PixInsight.
+ * Finally, the walking noise after stacking is greatly reduced by adding the
+ * cool file to all the original light frames.
+ * The stacked image, the image with CosmeticCorrection applied, and the cool file
+ * corrected data will be output to the specified directory or lower (or to
+ * the same directory as the first light frame if not specified), and the script
+ * will terminate.
+
+ *
+ * Copyright (C) 2022 Nagahiro and Astrodabo
+ *
+ * Part of this file is based on BatchLinearFit.js
+ * Copyright 2013 Pleiades Astrophoto S.L.
+ */
+
 
 #include <pjsr/Sizer.jsh>
 #include <pjsr/NumericControl.jsh>
@@ -8,7 +75,8 @@
 
 #define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
-//1:29:25
+#define VERSION "0.1.0"
+#define TITLE   "Cold Pixel Interpolation"
 
 var cpiParameters = {
    coldSigma: 0,
@@ -16,7 +84,6 @@ var cpiParameters = {
 };
 
 function ColdPixelInterpolationEngine() {
-   /*maybe including parameters which is NOT necessary... */
    this.inputFiles = new Array;
    this.outputDirectory = "";
    this.outputPrefix = "";
@@ -63,21 +130,7 @@ function ColdPixelInterpolationEngine() {
       else {
          console.writeln("<raw>" + outputFilePath + "</raw>");
       }
-
-      // write the output image to disk using
-      // Boolean ImageWindow.saveAs(
-      //    String filePath[,
-      //    Boolean queryOptions[,
-      //    Boolean allowMessages[,
-      //    Boolean strict[,
-      //    Boolean verifyOverwrite]]]] )
       imageWindow.saveAs(outputFilePath, false, false, false, false);
-      // this statement will force ImageWindow to disable all format and security features, as follows
-      //    disable query format-specific options
-      //    disable warning messages on missing format features (icc profiles, etc)
-      //    disable strict image writing mode (ignore lossy image generation)
-      //    disable overwrite verification/protection
-
    };
 
    this.coldPixelInterpolationFiles = function () {
@@ -217,7 +270,7 @@ function CPI_dialog() {
 
    //title show
    this.title = new TextBox(this);
-   this.title.text = "<b> Cold Pixel Interpolation v0.1</b><br><br>" +
+   this.title.text = "<b>" + TITLE + " v" + VERSION + "</b><br><br>" +
       "&nbsp;a script removes cold pixels<br>" +
       "&nbsp;&nbsp;invented by apranat (Twitter: @PG1wvzio4yvwFXW)<br>" +
       "&nbsp;&nbsp;implemented by astrodabo (Twitter: @astrodabo) and nagahiro (Twitter: @pochomskii) <br>" +
@@ -226,15 +279,6 @@ function CPI_dialog() {
    this.title.backgoundColor = 0x333333ff;
    this.title.minHeight = 120;
    this.title.maxHeight = 120;
-
-   /*
-   //show view list
-   this.viewList = new ViewList(this);
-   this.viewList.getMainViews();
-   this.viewList.onViewSelected = function(view){
-      cpiParameters.targetView = view ;
-      Console.writeln("selected:", view.id );
-   }*/
 
    //show file list
    this.files_TreeBox = new TreeBox(this);
@@ -332,8 +376,14 @@ function CPI_dialog() {
    this.setAmount.slider.setRange(0, 100);
    this.setAmount.onValueUpdated = function (value) {
       cpiParameters.coldSigma = value;
-     // Console.writeln("new value: ", cpiParameters.coldSigma);
    }
+
+   this.params_GroupBox = new GroupBox( this );
+   this.params_GroupBox.title = "CPI Parameters";
+   this.params_GroupBox.sizer = new VerticalSizer;
+   this.params_GroupBox.sizer.margin = 6;
+   this.params_GroupBox.sizer.spacing = 4;
+   this.params_GroupBox.sizer.add( this.setAmount );
 
    //execute button
    this.execButton = new PushButton(this);
@@ -436,15 +486,15 @@ function CPI_dialog() {
    this.bottomSizer.addStretch();
    this.bottomSizer.add(this.execButton);
 
-   this.prefixSizer = new HorizontalSizer;
-   this.prefixSizer.margin = 8;
-   this.prefixSizer.spacing = 4;
-   this.prefixSizer.add(this.stackedName_Label);
-   this.prefixSizer.add(this.stackedName);
-   this.prefixSizer.add(this.outputPostfixCC_Label);
-   this.prefixSizer.add(this.outputPostfixCC_Edit);
-   this.prefixSizer.add(this.outputPostfix_Label);
-   this.prefixSizer.add(this.outputPostfix_Edit);
+   this.postfixSizer = new HorizontalSizer;
+   this.postfixSizer.margin = 8;
+   this.postfixSizer.spacing = 4;
+   this.postfixSizer.add(this.stackedName_Label);
+   this.postfixSizer.add(this.stackedName);
+   this.postfixSizer.add(this.outputPostfixCC_Label);
+   this.postfixSizer.add(this.outputPostfixCC_Edit);
+   this.postfixSizer.add(this.outputPostfix_Label);
+   this.postfixSizer.add(this.outputPostfix_Edit);
 
 
    this.isoverwrite = new CheckBox(this);
@@ -466,7 +516,7 @@ function CPI_dialog() {
    this.output_GroupBox.sizer.margin = 6;
    this.output_GroupBox.sizer.spacing = 4;
    this.output_GroupBox.sizer.add( this.outputDir_Sizer );
-   this.output_GroupBox.sizer.add( this.prefixSizer );
+   this.output_GroupBox.sizer.add( this.postfixSizer );
    this.output_GroupBox.sizer.add( this.overwriteSizer );
 
 
@@ -476,15 +526,12 @@ function CPI_dialog() {
    this.sizer = new VerticalSizer;
    this.sizer.margin = 8;
    this.sizer.add(this.title);
-   //this.sizer.addSpacing(8);
-   //this.sizer.add( this.viewList );
    this.sizer.addSpacing(8);
    this.sizer.add(this.files_GroupBox);
    this.sizer.addSpacing(8);
-   this.sizer.add(this.setAmount);
+   this.sizer.add(this.params_GroupBox);
    this.sizer.addSpacing(8);
    this.sizer.add(this.output_GroupBox);
-   this.sizer.add(this.prefixSizer);
    this.sizer.add(this.bottomSizer);
    this.sizer.addStretch();
 
@@ -504,8 +551,8 @@ function main() {
       //perform
       Console.writeln("CPI script finished");
    } else {
-      //canceled
-      Console.writeln("error");
+      //cancelled
+      Console.writeln("Cancelled");
    }
 
 
