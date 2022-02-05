@@ -17,7 +17,6 @@ var cpiParameters = {
 };
 
 function ColdPixelInterpolationEngine() {
-   /*maybe including parameters which is NOT necessary... */
    this.inputFiles = new Array;
    this.outputDirectory = "";
    this.outputPrefix = "";
@@ -64,21 +63,7 @@ function ColdPixelInterpolationEngine() {
       else {
          console.writeln("<raw>" + outputFilePath + "</raw>");
       }
-
-      // write the output image to disk using
-      // Boolean ImageWindow.saveAs(
-      //    String filePath[,
-      //    Boolean queryOptions[,
-      //    Boolean allowMessages[,
-      //    Boolean strict[,
-      //    Boolean verifyOverwrite]]]] )
       imageWindow.saveAs(outputFilePath, false, false, false, false);
-      // this statement will force ImageWindow to disable all format and security features, as follows
-      //    disable query format-specific options
-      //    disable warning messages on missing format features (icc profiles, etc)
-      //    disable strict image writing mode (ignore lossy image generation)
-      //    disable overwrite verification/protection
-
    };
 
    this.coldPixelInterpolationFiles = function () {
@@ -228,15 +213,6 @@ function CPI_dialog() {
    this.title.minHeight = 120;
    this.title.maxHeight = 120;
 
-   /*
-   //show view list
-   this.viewList = new ViewList(this);
-   this.viewList.getMainViews();
-   this.viewList.onViewSelected = function(view){
-      cpiParameters.targetView = view ;
-      Console.writeln("selected:", view.id );
-   }*/
-
    //show file list
    this.files_TreeBox = new TreeBox(this);
    this.files_TreeBox.multipleSelection = true;
@@ -333,7 +309,6 @@ function CPI_dialog() {
    this.setAmount.slider.setRange(0, 100);
    this.setAmount.onValueUpdated = function (value) {
       cpiParameters.coldSigma = value;
-     // Console.writeln("new value: ", cpiParameters.coldSigma);
    }
 
    //execute button
@@ -437,15 +412,15 @@ function CPI_dialog() {
    this.bottomSizer.addStretch();
    this.bottomSizer.add(this.execButton);
 
-   this.prefixSizer = new HorizontalSizer;
-   this.prefixSizer.margin = 8;
-   this.prefixSizer.spacing = 4;
-   this.prefixSizer.add(this.stackedName_Label);
-   this.prefixSizer.add(this.stackedName);
-   this.prefixSizer.add(this.outputPostfixCC_Label);
-   this.prefixSizer.add(this.outputPostfixCC_Edit);
-   this.prefixSizer.add(this.outputPostfix_Label);
-   this.prefixSizer.add(this.outputPostfix_Edit);
+   this.postfixSizer = new HorizontalSizer;
+   this.postfixSizer.margin = 8;
+   this.postfixSizer.spacing = 4;
+   this.postfixSizer.add(this.stackedName_Label);
+   this.postfixSizer.add(this.stackedName);
+   this.postfixSizer.add(this.outputPostfixCC_Label);
+   this.postfixSizer.add(this.outputPostfixCC_Edit);
+   this.postfixSizer.add(this.outputPostfix_Label);
+   this.postfixSizer.add(this.outputPostfix_Edit);
 
 
    this.isoverwrite = new CheckBox(this);
@@ -467,7 +442,7 @@ function CPI_dialog() {
    this.output_GroupBox.sizer.margin = 6;
    this.output_GroupBox.sizer.spacing = 4;
    this.output_GroupBox.sizer.add( this.outputDir_Sizer );
-   this.output_GroupBox.sizer.add( this.prefixSizer );
+   this.output_GroupBox.sizer.add( this.postfixSizer );
    this.output_GroupBox.sizer.add( this.overwriteSizer );
 
 
@@ -477,8 +452,6 @@ function CPI_dialog() {
    this.sizer = new VerticalSizer;
    this.sizer.margin = 8;
    this.sizer.add(this.title);
-   //this.sizer.addSpacing(8);
-   //this.sizer.add( this.viewList );
    this.sizer.addSpacing(8);
    this.sizer.add(this.files_GroupBox);
    this.sizer.addSpacing(8);
@@ -505,8 +478,8 @@ function main() {
       //perform
       Console.writeln("CPI script finished");
    } else {
-      //canceled
-      Console.writeln("error");
+      //cancelled
+      Console.writeln("Cancelled");
    }
 
 
