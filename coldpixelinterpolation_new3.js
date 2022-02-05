@@ -17,9 +17,12 @@ function ColdPixelInterpolationEngine() {
    this.inputFiles = new Array;
    this.outputDirectory = "";
    this.outputPrefix = "";
+   this.outputPostfixCC = "_cc";
    this.outputPostfix = "_cf";
+   this.usingPostfix = "";
+   this.stackedName = "stacked";
    this.outputExtension = DEFAULT_OUTPUT_EXTENSION;
-   this.overwriteExisting = true;
+   this.overwriteExisting = false;
    this.outputFormat = null;
 
    this.readImage = function (filePath) {
