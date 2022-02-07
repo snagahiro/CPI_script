@@ -265,7 +265,7 @@ function CPI_dialog() {
    this.__base__();
 
    this.minWidth = 550;
-   this.minHeight = 640;
+   this.minHeight = 635;
    var labelWidth1 = this.font.width( "Output format hints:" + 'T' );
    this.textEditWidth = 25 * this.font.width( "M" );
    this.numericEditWidth = 6 * this.font.width( "0" );
