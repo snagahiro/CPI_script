@@ -1,6 +1,6 @@
 // ****************************************************************************
 // coldpixelinterpolation.js - Released 02/05/2022
-// Version: 0.1.0
+// Version: 0.1.1
 // ****************************************************************************
 // Copyright (c) 2022, Nagahiro and Astrodabo. All Rights Reserved.
 // Website (nagahiro): https://snct-astro.hatenadiary.jp/archive
@@ -70,12 +70,12 @@
 #include <pjsr/NumericControl.jsh>
 #include <pjsr/ImageOp.jsh>
 
-#feature-id Utilities > Cold Pixel Interpolation
+#feature-id Utilities > ColdPixelInterpolation
 #feature-info This script corrects cold pixels that are hard to remove simply applies CC process.
 
 #define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define TITLE   "Cold Pixel Interpolation"
 
 var cpiParameters = {
@@ -152,6 +152,7 @@ function ColdPixelInterpolationEngine() {
          image.apply(this.inputFiles.length, ImageOp_Div); //divide current image
          stackedImage.apply(image, ImageOp_Add);           //and add!
          currentImage.mainView.endProcess();
+         currentImage.forceClose();
       }
 
       //Convert to ImageWindow Object
@@ -250,6 +251,7 @@ function ColdPixelInterpolationEngine() {
          var fileName = File.extractName(this.inputFiles[i]);
          var outPath = directory + "/" + fileName;
          this.writeImage(currentImage, outPath);
+         currentImage.forceClose();
       }
 
    }
@@ -262,8 +264,8 @@ function CPI_dialog() {
    this.__base__ = Dialog;
    this.__base__();
 
-   this.minWidth = 600;
-   this.minHeight = 500;
+   this.minWidth = 550;
+   this.minHeight = 635;
    var labelWidth1 = this.font.width( "Output format hints:" + 'T' );
    this.textEditWidth = 25 * this.font.width( "M" );
    this.numericEditWidth = 6 * this.font.width( "0" );
