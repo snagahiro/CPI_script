@@ -45,16 +45,17 @@
 /*
  * Cold Pixel Interpolation v0.1.0
  *
- * This script allows you to define a set of input calibrated light image files,
- * cold sigma parameter, an optional output directory, and output file formats.
+ * This script allows you to define a set of input calibrated light image files
+ * (darks and flats are applied and not aligned),
+ * cold sigma parameter, an optional output directory, and some output options.
  * The script then iterates reading each input file, stacks them. Then it replicates
  * stacked data and applies CosmeticCorrection to one side.
  * By taking the difference between these two images, a cool file is generated,
  * and it will be output on PixInsight.
  * Finally, the walking noise after stacking is greatly reduced by adding the
  * cool file to all the original light frames.
- * The stacked image, the image with CosmeticCorrection applied, and the cool file
- * corrected data will be output to the specified directory or lower (or to
+ * The stacked image, the stacked image with CosmeticCorrection applied, and the cold-pixel-corrected
+ * light frames will be output to the specified directory (or to
  * the same directory as the first light frame if not specified), and the script
  * will terminate.
 
@@ -71,7 +72,25 @@
 #include <pjsr/ImageOp.jsh>
 
 #feature-id Utilities > ColdPixelInterpolation
-#feature-info This script corrects cold pixels that are hard to remove simply applies CC process.
+#feature-info This script corrects cold pixels that are hard to remove simply applies CC process. <br> \
+   This script allows you to define a set of input calibrated light image files \
+   (darks and flats are applied and not aligned), \
+   cold sigma parameter, an optional output directory, and some output options. <br> \
+   The script then iterates reading each input file, stacks them. Then it replicates \
+   stacked data and applies CosmeticCorrection to one side. <br> \
+   By taking the difference between these two images, a cool file is generated, \
+   and it will be output on PixInsight. <br> \
+   Finally, the walking noise after stacking is greatly reduced by adding the \
+   cool file to all the original light frames. <br> \
+   The stacked image, the stacked image with CosmeticCorrection applied, and the cold-pixel-corrected \
+   light frames will be output to the specified directory (or to \
+   the same directory as the first light frame if not specified), and the script \
+   will terminate. \
+   <br><br> \
+   Copyright (C) 2022 Nagahiro and Astrodabo \
+   <br><br> \
+   Part of this file is based on BatchLinearFit.js <br> \
+   Copyright 2013 Pleiades Astrophoto S.L.
 
 #define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
