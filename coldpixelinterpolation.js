@@ -1,6 +1,6 @@
 // ****************************************************************************
 // coldpixelinterpolation.js - Released 02/05/2022
-// Version: 0.1.1
+// Version: 0.1.2
 // ****************************************************************************
 // Copyright (c) 2022, Nagahiro and Astrodabo. All Rights Reserved.
 // Website (nagahiro): https://snct-astro.hatenadiary.jp/archive
@@ -43,7 +43,7 @@
 // ****************************************************************************
 
 /*
- * Cold Pixel Interpolation v0.1.0
+ * Cold Pixel Interpolation v0.1.2
  *
  * This script allows you to define a set of input calibrated light image files
  * (darks and flats are applied and not aligned),
@@ -94,7 +94,7 @@
 
 #define DEFAULT_OUTPUT_EXTENSION ".xisf"
 
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 #define TITLE   "Cold Pixel Interpolation"
 
 var cpiParameters = {
