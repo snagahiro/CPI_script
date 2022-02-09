@@ -225,11 +225,15 @@ function ColdPixelInterpolationEngine() {
       var stackedCCImageWin = this.readImage(stackedImageCCPath_actual);
 
       //Create Cool File
-      var coolImage = new ImageWindow(stackedCCImageWin);
+      var coolImage = new ImageWindow(stackedCCImageWin.width, stackedCCImageWin.height);
       coolImage.mainView.beginProcess();
+      coolImage.mainView.image.assign(stackedCCImageWin.mainView.image);
       coolImage.mainView.image.apply(stackedImageWin.mainView.image, ImageOp_Sub);
       coolImage.mainView.endProcess();
+      coolImage.mainView.id = "Cool_Image";
       coolImage.show();
+      stackedImageWin.forceClose();
+      stackedCCImageWin.forceClose();
 
       //Apply Cool File to original light frames
       var directory = null;
